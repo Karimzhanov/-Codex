@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выход</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo">Instagram Анализ</a>
+            <ul class="nav-links">
+                <li><a href="{% url 'index' %}">Главная</a></li>
+                <li><a href="{% url 'profile' %}">Профиль</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="container">
+            <div class="logout-container">
+                <h1>Выход из аккаунта</h1>
+                <p>Вы успешно вышли из аккаунта. <a href="{% url 'login' %}">Войдите снова</a>, если нужно.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

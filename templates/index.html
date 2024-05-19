@@ -1,0 +1,86 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализ активности Instagram</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo">Instagram Анализ</a>
+            <ul class="nav-links">
+                <li><a href="{% url 'index'%}">Главная</a></li>
+                <li><a href="{% url 'profile'%}">Аккаунт</a></li>
+                <li><a href="#">Настройки</a></li>
+                <li><a href="{% url 'logout' %}">Выйти</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div id="searchContainer" class="search-container">
+            <form action="{% url 'analyze_instagram' %}" method="POST">
+                {% csrf_token %}
+                <h1>Instagram Analysis</h1>
+                <label for="username">Enter Instagram Username:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="post_count">Number of Posts to Display:</label>
+                <input type="number" id="post_count" name="post_count" value="10">
+                <button type="submit">Submit</button>
+            </form>
+            {% if error_message %}
+            <p class="error">Error: {{ error_message }}</p>
+            {% endif %}
+        </div>
+
+        {% if user_data %}
+        <div class="container">
+            <h1>Instagram Account Analysis Result</h1>
+            <div class="profile-info">
+                <img src="{{ user_data.profile_pic_url }}" alt="Profile Picture">
+                <p><strong>Username:</strong> {{ user_data.username }}</p>
+                <p><strong>Full Name:</strong> {{ user_data.full_name }}</p>
+                <p><strong>Followers:</strong> {{ user_data.followers }}</p>
+                <p><strong>Following:</strong> {{ user_data.following }}</p>
+                <p><strong>Biography:</strong> {{ user_data.biography }}</p>
+            </div>
+            
+            {% if posts %}
+            <h2>Last Posts:</h2>
+            <div class="posts">
+                {% for post in posts %}
+                <div class="post" onclick="showPostDetails(this)">
+                    <div class="post-content">
+                        <img src="{{ post.image_url }}" alt="Post Image">
+                        <div class="post-info">
+                            <span><strong>Likes:</strong> {{ post.likes }}</span>
+                            <span><strong>Comments:</strong> {{ post.comments }}</span>
+                        </div>
+                    </div>
+                    <div class="post-details">
+                        <p><strong>Description:</strong> {{ post.caption }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function showPostDetails(postContent) {
+            var post = postContent.closest('.post');
+            var postDetails = post.querySelector('.post-details');
+            document.querySelectorAll('.post-details').forEach(function (element) {
+                element.classList.remove('active');
+            });
+            postDetails.classList.add('active');
+        }
+    </script>
+</body>
+</html>

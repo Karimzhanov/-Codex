@@ -1,0 +1,51 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Войти</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo">Instagram Анализ</a>
+            <ul class="nav-links">
+                <li><a href="{% url 'index' %}">Главная</a></li>
+                <li><a href="{% url 'login' %}">Войти</a></li>
+                <li><a href="{% url 'register' %}">Регистрация</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="container">
+            <div class="auth-container">
+                <h1>Войти</h1>
+                <form method="POST" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <label for="username">Имя пользователя:</label>
+                    <input type="text" id="username" name="username" required>
+
+                    <label for="password">Пароль:</label>
+                    <input type="password" id="password" name="password" required>
+
+                    <button type="submit">Войти</button>
+
+                    {% if form.errors %}
+                    <div class="error">
+                        <ul>
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

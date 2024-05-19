@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль пользователя</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="#" class="logo">Instagram Анализ</a>
+            <ul class="nav-links">
+                <li><a href="{% url 'index' %}">Главная</a></li>
+                <li><a href="{% url 'profile' %}">Профиль</a></li>
+                <li><a href="{% url 'logout' %}">Выйти</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="container">
+            <div class="profile-container">
+                <h1>Профиль пользователя</h1>
+                <div class="profile-info">
+                    <img src="{{ user.profile.profile_pic_url }}" alt="Profile Picture" class="profile-pic">
+                    <div class="user-details">
+                        <h2>{{ user.username }}</h2>
+                        <p><strong>Полное имя:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                        <p><strong>Электронная почта:</strong> {{ user.email }}</p>
+                        <p><strong>Подписчики:</strong> {{ user.profile.followers }}</p>
+                        <p><strong>Подписки:</strong> {{ user.profile.following }}</p>
+                        <p><strong>Количество постов:</strong> {{ user.profile.posts_count }}</p>
+                        <p><strong>Биография:</strong> {{ user.profile.biography }}</p>
+                        <a href="{% url 'edit_profile' %}" class="btn">Редактировать профиль</a>
+                    </div>
+                </div>
+                <h2>Последние посты</h2>
+                <div class="posts">
+                    {% for post in user.profile.posts %}
+                    <div class="post">
+                        <div class="post-content" onclick="showPostDetails(this)">
+                            {% if post.video_url %}
+                            <video controls>
+                                <source src="{{ post.video_url }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            {% else %}
+                            <img src="{{ post.image_url }}" alt="Post Image">
+                            {% endif %}
+                            <div class="post-info">
+                                <span><strong>Лайки:</strong> {{ post.likes }}</span>
+                                <span><strong>Комментарии:</strong> {{ post.comments }}</span>
+                            </div>
+                        </div>
+                        <div class="post-details">
+                            <p><strong>Описание:</strong> {{ post.caption }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showPostDetails(postContent) {
+            var post = postContent.closest('.post');
+            var postDetails = post.querySelector('.post-details');
+            document.querySelectorAll('.post-details').forEach(function (element) {
+                element.classList.remove('active');
+            });
+            postDetails.classList.add('active');
+        }
+    </script>
+</body>
+</html>
