@@ -17,10 +17,6 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.username
 
-    
-# models.py
-
-
 
 
 class Post(models.Model):
@@ -36,7 +32,3 @@ class Comment(models.Model):
     text = models.TextField()
     author = models.CharField(max_length=100)
     pub_date = models.DateTimeField(auto_now_add=True)
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # Добавьте здесь другие поля, если это необходимо

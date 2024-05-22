@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
@@ -9,4 +9,6 @@ urlpatterns = [
     path('edit_profile/', views.edit_profile, name='edit_profile'),
     path('analyze-instagram/', views.analyze_instagram, name='analyze_instagram'),
     path('logout/', views.logout_view, name='logout'),
+    re_path(r'^proxy/(?P<url>.+)$', views.proxy_view, name='proxy_view'),
+
 ]

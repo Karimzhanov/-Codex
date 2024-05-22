@@ -1,248 +1,26 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Анализ активности Instagram</title>
-    <!-- Подключение стилей -->
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Основные стили */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .navbar {
-            background-color: #333;
-            color: #fff;
-            padding: 10px 0;
-        }
-
-        .navbar .logo {
-            color: #fff;
-            text-decoration: none;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .navbar .nav-links {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .navbar .nav-links li {
-            margin-left: 20px;
-        }
-
-        .navbar .nav-links li a {
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .search-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .search-container input[type="text"] {
-            padding: 10px;
-            width: 300px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 1rem;
-        }
-
-        .search-container button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #333;
-            color: #fff;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .tabs {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .tabs button {
-            padding: 10px 20px;
-            border: none;
-            background-color: #333;
-            color: #fff;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            margin-right: 10px;
-        }
-
-        .tabcontent {
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            display: none; /* Скрыть содержимое вкладок по умолчанию */
-        }
-
-        .loading {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        #snackbar {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 2px;
-            padding: 16px;
-            position: fixed;
-            z-index: 1;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-        }
-
-        /* Анимация для информационных сообщений */
-        #snackbar.show {
-            visibility: visible;
-            animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        }
-
-        @keyframes fadein {
-            from {
-                bottom: 0;
-                opacity: 0;
-            }
-
-            to {
-                bottom: 30px;
-                opacity: 1;
-            }
-        }
-
-        @keyframes fadeout {
-            from {
-                bottom: 30px;
-                opacity: 1;
-            }
-
-            to {
-                bottom: 0;
-                opacity: 0;
-            }
-        }
-
-        /* Стили для постов */
-        .posts {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Создаем сетку с автоматической шириной колонок */
-            grid-gap: 20px; /* Добавляем промежутки между постами */
-        }
-
-        .post {
-            position: relative; /* Позиционируем пост относительно родительского контейнера */
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-            transition: transform 0.3s ease; /* Добавляем плавное переходное изменение при наведении */
-            cursor: pointer; /* Добавляем курсор указателя при наведении */
-        }
-
-        .post:hover {
-            transform: translateY(-5px); /* Поднимаем пост при наведении мыши */
-        }
-
-        /* Стили для контента поста */
-        .post-content {
-            height: 300px; /* Размер поста */
-            overflow: hidden;
-        }
-
-        .post-content img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .post-content video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Стили для информации о посте */
-        .post-info {
-            position: absolute; /* Позиционируем информацию о посте абсолютно */
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.5); /* Добавляем полупрозрачный фон */
-            color: #fff;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        /* Стили для подробностей о посте */
-        .post-details {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: calc(100% - 360px); /* Ширина с отступом для подробностей о посте */
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-            display: none; /* По умолчанию скрываем подробности */
-            overflow-y: auto; /* Добавляем прокрутку,
-            scrolling, если необходимо */
-        }
-
-        .post-details.active {
-            display: block; /* Показываем подробности, если класс active применен */
-        }
-
-        .post-details p {
-            margin: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-    <!-- Навигационная панель -->
     <nav class="navbar">
         <div class="container">
             <a href="#" class="logo">Instagram Анализ</a>
             <ul class="nav-links">
-                <li><a href="{% url 'index'%}">Главная</a></li>
-                <li><a href="#">Аккаунты</a></li>
+                <li><a href="{% url 'index' %}">Главная</a></li>
+                <li><a href="{% url 'profile' %}">Аккаунт</a></li>
                 <li><a href="#">Настройки</a></li>
-                <li><a href="#">Выйти</a></li>
+                <li><a href="{% url 'logout' %}">Выйти</a></li>
             </ul>
         </div>
     </nav>
 
-    <!-- Форма поиска -->
     <div class="content">
         <div id="searchContainer" class="search-container">
             <form action="{% url 'analyze_instagram' %}" method="POST">
@@ -252,36 +30,37 @@
                 <input type="text" id="username" name="username" required>
                 <label for="post_count">Number of Posts to Display:</label>
                 <input type="number" id="post_count" name="post_count" value="10">
-                <input type="submit" value="Submit">
+                <button type="submit">Submit</button>
             </form>
             {% if error_message %}
             <p class="error">Error: {{ error_message }}</p>
             {% endif %}
         </div>
 
+        {% if user_data %}
         <div class="container">
             <h1>Instagram Account Analysis Result</h1>
             <div class="profile-info">
-                <img src="{{ user_data.profile_pic_url }}" alt="Profile Picture">
+                <img src="{% url 'proxy_view' user_data.profile_pic_url %}" alt="Profile Picture">
                 <p><strong>Username:</strong> {{ user_data.username }}</p>
                 <p><strong>Full Name:</strong> {{ user_data.full_name }}</p>
                 <p><strong>Followers:</strong> {{ user_data.followers }}</p>
                 <p><strong>Following:</strong> {{ user_data.following }}</p>
                 <p><strong>Biography:</strong> {{ user_data.biography }}</p>
             </div>
+            
             {% if posts %}
-            <h2>Last Posts:</h2>
             <div class="posts">
                 {% for post in posts %}
-                <div class="post">
-                    <div class="post-content" onclick="showPostDetails(this)">
+                <div class="post" onclick="showPostDetails(this)">
+                    <div class="post-content">
                         {% if post.video_url %}
-                        <video controls>
-                            <source src="{{ post.video_url }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
+                            <video controls>
+                                <source src="{% url 'proxy_view' post.video_url %}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
                         {% else %}
-                        <img src="{{ post.image_url }}" alt="Post Image">
+                            <img src="{% url 'proxy_view' post.image_url %}" alt="Post Image" onclick="openInstagramPost('{{ post.instagram_link }}', event)">
                         {% endif %}
                         <div class="post-info">
                             <span><strong>Likes:</strong> {{ post.likes }}</span>
@@ -296,59 +75,36 @@
             </div>
             {% endif %}
         </div>
+        {% endif %}
     </div>
-
-    <!-- Вкладки для отображения последних постов и комментариев -->
-    <div class="tabs">
-        <button class="tablinks" onclick="openTab(event, 'posts')">Последние посты</button>
-        <button class="tablinks" onclick="openTab(event, 'comments')">Комментарии</button>
-    </div>
-
-    <!-- Контент вкладок -->
-    <div id="posts" class="tabcontent">
-        <!-- Содержимое для вкладки "Последние посты" -->
-    </div>
-
-    <div id="comments" class="tabcontent">
-        <!-- Содержимое для вкладки "Комментарии" -->
-    </div>
-
-    <!-- Информационные сообщения -->
-    <div id="snackbar">Информационное сообщение</div>
-
-    <!-- Индикатор загрузки -->
-    <div class="loading">
-        <!-- Анимированный индикатор загрузки, например, спиннер -->
-        Загрузка...
-    </div>
-
-    <!-- Подключение скриптов -->
-    <script src="scripts.js"></script>
 
     <script>
         function showPostDetails(postContent) {
-            // Поиск родительского элемента поста
             var post = postContent.closest('.post');
-            // Поиск дочернего элемента с деталями поста
             var postDetails = post.querySelector('.post-details');
-            // Удаление класса active у всех подробностей постов
-            document.querySelectorAll('.post-details').forEach(function (element) {
-                element.classList.remove('active');
-            });
-            // Добавление класса active к подробностям текущего поста
-            postDetails.classList.add('active');
-        }
-
-        // Функция для закрытия подробностей поста при клике вне области
-        window.onclick = function(event) {
-            if (!event.target.matches('.post')) {
-                var postDetails = document.querySelectorAll('.post-details');
-                postDetails.forEach(function(element) {
+            var isActive = postDetails.classList.contains('active');
+            
+            // Проверяем, активен ли данный пост
+            if (isActive) {
+                // Если пост уже активен, скрываем его детали
+                postDetails.classList.remove('active');
+            } else {
+                // Иначе, скрываем детали для всех постов и показываем только для текущего
+                document.querySelectorAll('.post-details').forEach(function (element) {
                     element.classList.remove('active');
                 });
+                postDetails.classList.add('active');
             }
-        };
+        }
+    
+        function openInstagramPost(postContent, event) {
+            // Отменяем стандартное действие по клику, чтобы предотвратить переход на about:blank
+            event.preventDefault();
+    
+            var post = postContent.closest('.post');
+            var instagramLink = post.querySelector('a').getAttribute('href');
+            window.open(instagramLink, '_blank');
+        }
     </script>
 </body>
-
 </html>

@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.hashers import make_password
 from .forms import RegistrationForm
 from .models import Post, Comment, UserProfile
 from django.utils import timezone
 from django.contrib.auth.models import User
-import instaloader
-
+import instaloader, requests, re 
 def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
@@ -31,7 +32,7 @@ def register(request):
         form = RegistrationForm()
 
     return render(request, 'register.html', {'form': form})
-
+    
 # @login_required
 def index(request):
     latest_posts = Post.objects.all()[:10]
@@ -46,6 +47,7 @@ def edit_profile(request):
 def login(request):
     error_message = None
     if request.method == 'POST':
+# @login_required
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
@@ -59,6 +61,8 @@ def login(request):
 def profile(request):
     user = request.user
     return render(request, 'profile.html', {'user': user})
+from django.shortcuts import render
+import instaloader
 
 def analyze_instagram(request):
     if request.method == 'POST':
@@ -73,13 +77,11 @@ def analyze_instagram(request):
                 'username': profile.username,
                 'full_name': profile.full_name,
                 'followers': profile.followers,
-                'following': profile.followees,
+                'following': profile.followees, 
                 'biography': profile.biography,
                 'profile_pic_url': profile.profile_pic_url,
             }
 
-            print("Profile data:", user_data)  # Отладочный вывод
-            
             # Получаем посты из Instagram
             posts = []
             for i, post in enumerate(profile.get_posts()):
@@ -87,22 +89,25 @@ def analyze_instagram(request):
                     break
                 new_post = {
                     'image_url': post.url,
+                    'video_url': post.video_url,
                     'caption': post.caption,
                     'likes': post.likes,
                     'comments': post.comments,
                     'timestamp': post.date_utc,
                 }
+                # Проверяем, является ли контент видео
+                if post.is_video:
+                    new_post['video_url'] = post.video_url
                 posts.append(new_post)
-
-            print("Posts:", posts)  # Отладочный вывод
 
             return render(request, 'index.html', {'user_data': user_data, 'posts': posts})
         except Exception as e:
             error_message = f"Error: {str(e)}"
-            print("Error:", error_message)  # Отладочный вывод
             return render(request, 'instagram_analysis.html', {'error_message': error_message})
     else:
         return render(request, 'instagram_analysis.html')
+
+
 
 
 
@@ -130,4 +135,29 @@ def sort_post_list(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('register') 
+    return redirect('register')
+
+
+from django.http import HttpResponse
+# from django.views.decorators.csrf import csrf_exempt
+
+
+from django.http import HttpResponse
+
+def proxy_view(request, url):
+    # Используем переданный URL для отправки запроса на сервер Instagram
+    response = requests.get(url)
+    
+    # Извлекаем тип контента из ответа
+    content_type = response.headers.get('content-type', '')
+    
+    # Создаем HTTP-ответ с содержимым и типом контента из запроса к Instagram
+    http_response = HttpResponse(response.content, content_type=content_type)
+    
+    # Добавляем заголовок Cross-Origin-Resource-Policy в зависимости от условий
+    if 'instagram.ffru1-4.fna.fbcdn.net' in request.META.get('HTTP_ORIGIN', ''):
+        http_response['Cross-Origin-Resource-Policy'] = 'same-site'
+    else:
+        http_response['Cross-Origin-Resource-Policy'] = 'cross-origin'
+    
+    return http_response
