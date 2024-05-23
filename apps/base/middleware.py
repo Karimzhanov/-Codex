@@ -9,6 +9,6 @@ class CORSMiddleware(MiddlewareMixin):
         response = self.get_response(request)
         
         # Добавляем заголовок Access-Control-Allow-Origin для разрешения доступа к ресурсам с других доменов
-        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Origin'] = 'https://example.com'
         
         return response

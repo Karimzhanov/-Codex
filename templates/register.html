@@ -44,7 +44,7 @@
             <a href="#" class="logo">Instagram Анализ</a>
             <ul class="nav-links">
                 <li><a href="{% url 'index' %}">Главная</a></li>
-                <li><a href="{% url                'login' %}">Войти</a></li>
+                <li><a href="{%url 'login' %}">Войти</a></li>
                 <li><a href="{% url 'register' %}">Регистрация</a></li>
             </ul>
         </div>
@@ -54,46 +54,54 @@
         <div class="container">
             <div class="auth-container">
                 <h1>Регистрация</h1>
-                <form method="POST" action="{% url 'register' %}">
+                <form method="post" action="{% url 'register' %}">
                     {% csrf_token %}
                     <label for="username">Имя пользователя:</label>
-                    <input type="text" id="username" name="username" required autocomplete="username" value="{{ form.username.value|default_if_none:'' }}">
-                    {% if form.username.errors %}
-                        <div class="error">{{ form.username.errors }}</div>
+                    <input type="text" id="username" name="username" required autocomplete="username" value="{{ username }}">
+                    {% if username_error %}
+                        <div class="error">{{ username_error }}</div>
                     {% endif %}
                     <label for="email">Электронная почта:</label>
-                    <input type="email" id="email" name="email" required autocomplete="email" value="{{ form.email.value|default_if_none:'' }}">
-                    {% if form.email.errors %}
-                        <div class="error">{{ form.email.errors }}</div>
+                    <input type="email" id="email" name="email" required autocomplete="email" value="{{ email }}">
+                    {% if email_error %}
+                        <div class="error">{{ email_error }}</div>
+                    {% endif %}
+                    <label for="phone">Номер телефона:</label>
+                    <input type="text" id="phone" name="phone" required autocomplete="tel" value="{{ phone }}">
+                    {% if phone_error %}
+                        <div class="error">{{ phone_error }}</div>
                     {% endif %}
                     <label for="password">Пароль:</label>
                     <div class="password-field">
-                        <input type="password" id="password" name="password" required autocomplete="new-password">
+                        <input type="password" id="password" name="password" required>
                         <span class="password-toggle eye-open" toggle="#password"></span>
                     </div>
-                    {% if form.password.errors %}
-                        <div class="error">{{ form.password.errors }}</div>
+                    {% if password_error %}
+                        <div class="error">{{ password_error }}</div>
                     {% endif %}
-                    <label for="password2">Подтвердите пароль:</label>
+                    <label for="confirm_password">Подтвердите пароль:</label>
                     <div class="password-field">
-                        <input type="password" id="password2" name="password2" required autocomplete="new-password">
-                        <span class="password-toggle eye-open" toggle="#password2"></span>
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <span class="password-toggle eye-open" toggle="#confirm_password"></span>
                     </div>
-                    {% if form.password2.errors %}
-                        <div class="error">{{ form.password2.errors }}</div>
+                    {% if confirm_password_error %}
+                        <div class="error">{{ confirm_password_error }}</div>
                     {% endif %}
 
                     <button type="submit">Зарегистрироваться</button>
-                    {% if form.non_field_errors %}
+                    {% if non_field_errors %}
                         <div class="error">
                             <ul>
-                                {% for error in form.non_field_errors %}
+                                {% for error in non_field_errors %}
                                     <li>{{ error }}</li>
                                 {% endfor %}
                             </ul>
                         </div>
                     {% endif %}
-                </form>
+                    {% if error_message %}
+                        <div class="error">{{ error_message }}</div>
+                    {% endif %}
+                </form> 
             </div>
         </div>
     </div>

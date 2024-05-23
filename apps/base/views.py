@@ -3,35 +3,53 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.hashers import make_password
-from .forms import RegistrationForm
-from .models import Post, Comment, UserProfile
+from .models import Post, Comment, User
 from django.utils import timezone
 from django.contrib.auth.models import User
-import instaloader, requests, re 
+import instaloader, requests, time
+from django.views.decorators.csrf import csrf_protect
+
+
+# Create your views here.
+
+@csrf_protect
 def register(request):
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            password_confirm = form.cleaned_data['password_confirm']
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        phone = request.POST.get("phone")
+        password = request.POST.get("password")
+        confirm_password = request.POST.get("confirm_password")
+        
+        if not (username and password and email and phone):
+            error_message = 'Пожалуйста, заполните все поля.'
+            return render(request, 'register.html', {'error_message': error_message})
 
-            if password == password_confirm:
-                # Создаем пользователя с хэшированным паролем
-                new_user = User.objects.create_user(username=username, email=email, password=password)
-                # Создаем профиль пользователя
-                user_profile = UserProfile(user=new_user)
-                user_profile.save()
+        if password != confirm_password:
+            error_message = 'Пароли не совпадают.'
+            return render(request, 'register.html', {'error_message': error_message})
 
-                return redirect('index')
-            else:
-                form.add_error('password_confirm', 'Passwords do not match')
+        # Проверка наличия пользователя с таким именем или электронной почтой
+        if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
+            error_message = 'Пользователь с таким именем или электронной почтой уже существует.'
+            return render(request, 'register.html', {'error_message': error_message})
 
-    else:
-        form = RegistrationForm()
+        try:
+            # Создайте пользователя и установите его атрибуты
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.phone = phone
+            user.save()
 
-    return render(request, 'register.html', {'form': form})
+            # Аутентифицируйте пользователя и выполните вход
+            user = authenticate(request=request, username=username, password=password)
+            if user:
+                login(request, user)
+                return redirect('index')  # Перенаправьте на главную страницу
+        except Exception as e:
+            error_message = f'Произошла ошибка при создании пользователя: {str(e)}'
+            return render(request, 'register.html', {'error_message': error_message})
+
+    return render(request, 'register.html', locals())
     
 # @login_required
 def index(request):
@@ -89,7 +107,7 @@ def analyze_instagram(request):
                     break
                 new_post = {
                     'image_url': post.url,
-                    'video_url': post.video_url,
+                    'video_url': None,
                     'caption': post.caption,
                     'likes': post.likes,
                     'comments': post.comments,
@@ -100,13 +118,15 @@ def analyze_instagram(request):
                     new_post['video_url'] = post.video_url
                 posts.append(new_post)
 
+                # Установим паузу между запросами
+                time.sleep(1)  # Пауза в 1 секунду между запросами
+
             return render(request, 'index.html', {'user_data': user_data, 'posts': posts})
         except Exception as e:
             error_message = f"Error: {str(e)}"
             return render(request, 'instagram_analysis.html', {'error_message': error_message})
     else:
         return render(request, 'instagram_analysis.html')
-
 
 
 
