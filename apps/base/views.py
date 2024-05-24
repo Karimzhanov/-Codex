@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.hashers import make_password
-from .models import Post, Comment, User
+from .models import Post, Comment, UserProfile
 from django.utils import timezone
 from django.contrib.auth.models import User
 import instaloader, requests, time
@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_protect
 
 
 # Create your views here.
+
 
 @csrf_protect
 def register(request):
@@ -40,48 +41,82 @@ def register(request):
             user.phone = phone
             user.save()
 
+            # Создайте профиль пользователя и свяжите его с пользователем Django
+            profile = UserProfile.objects.create(user=user, phone=phone)
+
+            # Сохраните поисковые запросы пользователя
+            profile.searches = "Данные о поиске, если есть"
+            profile.save()
+
             # Аутентифицируйте пользователя и выполните вход
             user = authenticate(request=request, username=username, password=password)
             if user:
-                login(request, user)
+                auth_login(request, user)  # Используем явный импорт
                 return redirect('index')  # Перенаправьте на главную страницу
         except Exception as e:
             error_message = f'Произошла ошибка при создании пользователя: {str(e)}'
             return render(request, 'register.html', {'error_message': error_message})
 
     return render(request, 'register.html', locals())
+
     
 # @login_required
 def index(request):
     latest_posts = Post.objects.all()[:10]
     comments = Comment.objects.filter(pub_date__gte=timezone.now() - timezone.timedelta(days=30))
+
+    if request.method == "POST":
+        query = request.POST.get("search_query")
+
+        # Получаем профиль текущего пользователя
+        user_profile = request.user.profile
+
+        # Сохраняем поисковой запрос для текущего пользователя
+        user_profile.searches.add(query)
+        user_profile.save()
+
+        # Здесь можно выполнить какую-то логику для обработки поискового запроса
+
     return render(request, 'index.html', {'latest_posts': latest_posts, 'comments': comments})
 
 def edit_profile(request):
-    # Ваш код для редактирования профиля пользователя
-    return render(request, 'edit_profile.html')
+    user = request.user
+    profile = user.userprofile
+
+    if request.method == 'POST':
+        user.username = request.POST.get('username')
+        user.email = request.POST.get('email')
+        user.first_name = request.POST.get('first_name')
+        user.last_name = request.POST.get('last_name')
+
+        if 'avatar' in request.FILES:
+            profile.avatar = request.FILES['avatar']
+
+        user.save()
+        profile.save()
+
+        return redirect('profile')
+
+    return render(request, 'edit_profile.html', {'user': user})
 
 # @login_required
-def login(request):
+def user_login(request):
     error_message = None
     if request.method == 'POST':
-# @login_required
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)
-            return redirect('home')
+            auth_login(request, user)
+            return redirect('index')
         else:
-            error_message = "Invalid username or password"
+            error_message = "Неверное имя пользователя или пароль"
     return render(request, 'login.html', {'error_message': error_message})
+
 
 def profile(request):
     user = request.user
-    return render(request, 'profile.html', {'user': user})
-from django.shortcuts import render
-import instaloader
-
+    return render(request, 'profile.html', {'user': request.user})
 def analyze_instagram(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -89,6 +124,12 @@ def analyze_instagram(request):
         L = instaloader.Instaloader()
 
         try:
+            # Аутентификация
+            L.load_session_from_file('adm1n.06514')
+            if not L.context.is_logged_in:
+                L.login('adm1n.06514', 'admin_0677')  # Замените 'ваш_логин' и 'ваш_пароль' на ваши данные
+                L.save_session_to_file()
+
             # Получаем профиль
             profile = instaloader.Profile.from_username(L.context, username)
             user_data = {
@@ -119,17 +160,14 @@ def analyze_instagram(request):
                 posts.append(new_post)
 
                 # Установим паузу между запросами
-                time.sleep(1)  # Пауза в 1 секунду между запросами
+                time.sleep(3)  # Пауза в 1 секунду между запросами
 
-            return render(request, 'index.html', {'user_data': user_data, 'posts': posts})
+            return render(request, 'instagram_analysis.html', {'user_data': user_data, 'posts': posts})
         except Exception as e:
             error_message = f"Error: {str(e)}"
             return render(request, 'instagram_analysis.html', {'error_message': error_message})
     else:
         return render(request, 'instagram_analysis.html')
-
-
-
 
 
 
@@ -181,3 +219,8 @@ def proxy_view(request, url):
         http_response['Cross-Origin-Resource-Policy'] = 'cross-origin'
     
     return http_response
+
+
+
+def settings(request):
+    return render(request, 'settings.html')

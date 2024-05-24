@@ -1,32 +1,22 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import User
 
-class User(AbstractUser):
-    phone = models.CharField(
-        max_length=255,
-        verbose_name="Телефонный номер"
-    )
-    groups = models.ManyToManyField(
-        Group,
-        related_name='user_custom_set',  # Уникальное имя для обратной ссылки
-        blank=True,
-        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-        verbose_name='groups',
-    )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        related_name='user_custom_set',  # Уникальное имя для обратной ссылки
-        blank=True,
-        help_text='Specific permissions for this user.',
-        verbose_name='user permissions',
-    )
-    
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone = models.CharField(max_length=255, verbose_name="Телефонный номер")
+    searches = models.TextField(blank=True, null=True, verbose_name="Поисковые запросы")
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name="Аватар")
+
     def __str__(self):
-        return self.username 
-    
+        return self.user.username
+
     class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        verbose_name = "Профиль пользователя"
+        verbose_name_plural = "Профили пользователей"
+
+    class Meta:
+        verbose_name = "Профиль пользователя"
+        verbose_name_plural = "Профили пользователей"
 
 
 class Post(models.Model):
