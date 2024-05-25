@@ -117,6 +117,7 @@ def user_login(request):
 def profile(request):
     user = request.user
     return render(request, 'profile.html', {'user': request.user})
+
 def analyze_instagram(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -148,19 +149,16 @@ def analyze_instagram(request):
                     break
                 new_post = {
                     'image_url': post.url,
-                    'video_url': None,
+                    'video_url': post.video_url if post.is_video else None,
                     'caption': post.caption,
                     'likes': post.likes,
                     'comments': post.comments,
                     'timestamp': post.date_utc,
                 }
-                # Проверяем, является ли контент видео
-                if post.is_video:
-                    new_post['video_url'] = post.video_url
                 posts.append(new_post)
 
                 # Установим паузу между запросами
-                time.sleep(3)  # Пауза в 1 секунду между запросами
+                time.sleep(3)  # Пауза в 3 секунды между запросами
 
             return render(request, 'instagram_analysis.html', {'user_data': user_data, 'posts': posts})
         except Exception as e:

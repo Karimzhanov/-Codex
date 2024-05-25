@@ -1,4 +1,4 @@
-{% load static %}
+{% load  static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.css" />
     <style>
-        /* Ваши стили */
         .post-details {
             display: none;
             position: fixed;
@@ -32,7 +31,7 @@
             height: 100%;
         }
 
-        .swiper-slide img, .swiper-slide video {
+        .swiper-slide img {
             width: 100%;
             height: 100%;
             object-fit: contain;
@@ -61,24 +60,61 @@
             cursor: pointer;
             z-index: 1001;
         }
+
+        .loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none;
+        }
+
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 6px solid #3498db;
+            width: 50px;
+            height: 50px;
+            -webkit-animation: spin 1.5s linear infinite;
+            animation: spin 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+    <div class="loader-wrapper" id="loader">
+        <div class="loader"></div>
+    </div>
+
     <nav class="navbar">
         <div class="container">
             <a href="#" class="logo">Instagram Анализ</a>
             <ul class="nav-links">
                 <li><a href="{% url 'index' %}">Главная</a></li>
-                <li><a href="{% url 'profile' %}">Аккаунт</a></li>
+                <li><a href="{% url 'profile' %}">Профиль</a></li>
                 <li><a href="{% url 'settings' %}">Настройки</a></li>
-                <li><a href="{% url 'logout' %}">Выйти</a></li>
             </ul>
         </div>
     </nav>
 
     <div class="content">
         <div id="searchContainer" class="search-container">
-            <form action="{% url 'analyze_instagram' %}" method="POST">
+            <form action="{% url 'analyze_instagram' %}" method="POST" onsubmit="showLoader()">
                 {% csrf_token %}
                 <h1>Анализ Instagram</h1>
                 <label for="username">Введите имя пользователя Instagram:</label>
@@ -115,9 +151,9 @@
                                         Ваш браузер не поддерживает видео.
                                     </video>
                                 {% else %}
-                                        {% if post.image_url %}
-                                            <img src="{% url 'proxy_view' post.image_url %}" alt="Изображение поста">
-                                        {% endif %}
+                                    {% if post.images %}
+                                        <img src="{% url 'proxy_view' post.image_url %}" alt="Изображение поста">
+                                    {% endif %}
                                 {% endif %}
                                 <div class="post-info">
                                     <span><strong>Лайки:</strong> {{ post.likes }}</span>
@@ -135,11 +171,17 @@
 
     <div class="post-details" id="postDetailsContainer">
         <button class="close-btn" onclick="closePostDetails()">Закрыть</button>
-        <div class="swiper-container">
+        <div class="swiper-container images">
             <div class="swiper-wrapper" id="postImagesContainer"></div>
-            <div class="swiper-pagination"></div>
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
+            <div class="swiper-pagination images"></div>
+            <div class="swiper-button-prev images"></div>
+            <div class="swiper-button-next images"></div>
+        </div>
+        <div class="swiper-container videos">
+            <div class="swiper-wrapper" id="postVideosContainer"></div>
+            <div class="swiper-pagination videos"></div>
+            <div class="swiper-button-prev videos"></div>
+            <div class="swiper-button-next videos"></div>
         </div>
         <div class="post-description" id="postDescriptionContainer"></div>
     </div>
@@ -149,19 +191,21 @@
         function showPostDetails(post) {
             var postDetailsContainer = document.getElementById('postDetailsContainer');
             var postImagesContainer = document.getElementById('postImagesContainer');
+            var postVideosContainer = document.getElementById('postVideosContainer');
             var postDescriptionContainer = document.getElementById('postDescriptionContainer');
-            
-            // Очищаем контейнеры перед добавлением нового контента
+    
+            // Очистка контейнеров перед добавлением нового контента
             postImagesContainer.innerHTML = '';
+            postVideosContainer.innerHTML = '';
             postDescriptionContainer.innerHTML = '';
-            
-            // Получаем ссылки на изображения и видео
+    
+            // Получение ссылок на изображения и видео
             var images = post.getAttribute('data-images');
             var videoUrl = post.getAttribute('data-video');
             var caption = post.getAttribute('data-caption');
             var comments = post.getAttribute('data-comments');
-            
-            // Добавляем изображения в контейнер
+    
+            // Добавление изображений в контейнер
             if (images) {
                 var imageList = images.split(',');
                 imageList.forEach(function(image) {
@@ -174,10 +218,11 @@
                     postImagesContainer.appendChild(swiperSlide);
                 });
             }
-            
-            // Если есть ссылка на видео
+    
+            // Добавление видео в контейнер
             if (videoUrl) {
-                // Создаем видеоэлемент
+                var swiperSlide = document.createElement('div');
+                swiperSlide.className = 'swiper-slide';
                 var video = document.createElement('video');
                 video.controls = true;
                 video.className = 'instagram-video';
@@ -185,42 +230,74 @@
                 source.src = videoUrl;
                 source.type = 'video/mp4';
                 video.appendChild(source);
-                // Добавляем видео в контейнер
-                var swiperSlide = document.createElement('div');
-                swiperSlide.className = 'swiper-slide';
                 swiperSlide.appendChild(video);
-                postImagesContainer.appendChild(swiperSlide);
+                postVideosContainer.appendChild(swiperSlide);
             }
-            
-            // Создаем описание поста
-            var postDescription = document.createElement('div');
-            postDescription.innerHTML = '<p><strong>Описание:</strong> ' + (caption ? caption : 'Отсутствует') + '</p>' +
-                                         '<p><strong>Комментарии:</strong> ' + (comments ? comments : 'Отсутствуют') + '</p>';
-            postDescriptionContainer.appendChild(postDescription);
-            
-            // Показываем контейнер с подробной информацией о посте
+    
+            // Добавление подписи в контейнер описания
+            if (caption) {
+                var captionElement = document.createElement('p');
+                captionElement.textContent = caption;
+                postDescriptionContainer.appendChild(captionElement);
+            }
+    
+            // Добавление комментариев в контейнер описания
+            if (comments) {
+                var commentsList = comments.split(',');
+                commentsList.forEach(function(comment) {
+                    var commentElement = document.createElement('p');
+                    commentElement.textContent = comment;
+                    postDescriptionContainer.appendChild(commentElement);
+                });
+            }
+    
+            // Инициализация Swiper для изображений
+            setTimeout(function() {
+                var imageSwiper = new Swiper('.swiper-container.images', {
+                    loop: true,
+                    navigation: {
+                        nextEl: '.swiper-button-next.images',
+                        prevEl: '.swiper-button-prev.images',
+                    },
+                    pagination: {
+                        el: '.swiper-pagination.images',
+                        clickable: true,
+                    },
+                });
+    
+                // Инициализация Swiper для видео
+                var videoSwiper = new Swiper('.swiper-container.videos', {
+                    loop: true,
+                    navigation: {
+                        nextEl: '.swiper-button-next.videos',
+                        prevEl: '.swiper-button-prev.videos',
+                    },
+                    pagination: {
+                        el: '.swiper-pagination.videos',
+                        clickable: true,
+                    },
+                });
+            }, 100); // Небольшая задержка для загрузки DOM элементов
+    
             postDetailsContainer.classList.add('active');
-            
-            // Инициализируем Swiper
-            var postSwiper = new Swiper('.swiper-container', {
-                loop: true,
-                pagination: {
-                    el: '.swiper-pagination',
-                    clickable: true,
-                },
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
-                },
-            });
         }
-        
+    
         function closePostDetails() {
             var postDetailsContainer = document.getElementById('postDetailsContainer');
             postDetailsContainer.classList.remove('active');
         }
+    
+        function showLoader() {
+            document.getElementById('loader').style.display = 'flex';
+        }
+    
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            hideLoader();
+        });
     </script>
-            
 </body>
 </html>
-

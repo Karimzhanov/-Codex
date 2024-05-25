@@ -7,6 +7,61 @@
     <title>Анализ активности Instagram</title>
     <link rel="stylesheet" href="{% static 'styles.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.css" />
+    <style>
+        /* Ваши стили */
+        .post-details {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .post-details.active {
+            display: flex;
+        }
+
+        .swiper-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .swiper-slide img, .swiper-slide video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .post-description {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            overflow: hidden;
+        }
+
+        .post-description p {
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -14,9 +69,8 @@
             <a href="#" class="logo">Instagram Анализ</a>
             <ul class="nav-links">
                 <li><a href="{% url 'index' %}">Главная</a></li>
-                <li><a href="{% url 'profile' %}">Аккаунт</a></li>
+                <li><a href="{% url 'profile' %}">Профиль</li>
                 <li><a href="{% url 'settings' %}">Настройки</a></li>
-                <li><a href="{% url 'logout' %}">Выйти</a></li>
             </ul>
         </div>
     </nav>
@@ -25,86 +79,150 @@
         <div id="searchContainer" class="search-container">
             <form action="{% url 'analyze_instagram' %}" method="POST">
                 {% csrf_token %}
-                <h1>Instagram Analysis</h1>
-                <label for="username">Enter Instagram Username:</label>
-                <input type="text" id="username" name="username" required>
-                <label for="post_count">Number of Posts to Display:</label>
+                <h1>Анализ Instagram</h1>
+                <label for="username">Введите имя пользователя Instagram:</label>
+                <input type="text" id="username" name="username" autocomplete="username">
+                <label for="post_count">Количество постов для отображения:</label>
                 <input type="number" id="post_count" name="post_count" value="10">
-                <button type="submit">Submit</button>
+                <button type="submit">Отправить</button>
             </form>
             {% if error_message %}
-            <p class="error">Error: {{ error_message }}</p>
+                <p class="error">Ошибка: {{ error_message }}</p>
             {% endif %}
         </div>
 
         {% if user_data %}
         <div class="container">
-            <h1>Instagram Account Analysis Result</h1>
+            <h1>Результаты анализа аккаунта Instagram</h1>
             <div class="profile-info">
-                <img src="{% url 'proxy_view' user_data.profile_pic_url %}" alt="Profile Picture">
-                <p><strong>Username:</strong> {{ user_data.username }}</p>
-                <p><strong>Full Name:</strong> {{ user_data.full_name }}</p>
-                <p><strong>Followers:</strong> {{ user_data.followers }}</p>
-                <p><strong>Following:</strong> {{ user_data.following }}</p>
-                <p><strong>Biography:</strong> {{ user_data.biography }}</p>
+                <img src="{% url 'proxy_view' user_data.profile_pic_url %}" alt="Фото профиля">
+                <p><strong>Имя пользователя:</strong> {{ user_data.username }}</p>
+                <p><strong>Полное имя:</strong> {{ user_data.full_name }}</p>
+                <p><strong>Подписчики:</strong> {{ user_data.followers }}</p>
+                <p><strong>Подписки:</strong> {{ user_data.following }}</p>
+                <p><strong>Биография:</strong> {{ user_data.biography }}</p>
             </div>
             
             {% if posts %}
-            <div class="posts">
-                {% for post in posts %}
-                <div class="post" onclick="showPostDetails(this)">
-                    <div class="post-content">
-                        {% if post.video_url %}
-                            <video controls>
-                                <source src="{% url 'proxy_view' post.video_url %}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                        {% else %}
-                            <img src="{% url 'proxy_view' post.image_url %}" alt="Post Image" onclick="openInstagramPost('{{ post.instagram_link }}', event)">
-                        {% endif %}
-                        <div class="post-info">
-                            <span><strong>Likes:</strong> {{ post.likes }}</span>
-                            <span><strong>Comments:</strong> {{ post.comments }}</span>
+                <div class="posts">
+                    {% for post in posts %}
+                        <div class="post" data-images="{{ post.images }}" data-video="{{ post.video_url }}" data-caption="{{ post.caption }}" data-comments="{{ post.comments }}" onclick="showPostDetails(this)">
+                            <div class="post-content">
+                                {% if post.video_url %}
+                                    <video controls class="instagram-video">
+                                        <source src="{{ post.video_url }}" type="video/mp4">
+                                        Ваш браузер не поддерживает видео.
+                                    </video>
+                                {% else %}
+                                        {% if post.image_url %}
+                                            <img src="{% url 'proxy_view' post.image_url %}" alt="Изображение поста">
+                                        {% endif %}
+                                {% endif %}
+                                <div class="post-info">
+                                    <span><strong>Лайки:</strong> {{ post.likes }}</span>
+                                    <span><strong>Комментарии:</strong> {{ post.comments }}</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="post-details">
-                        <p><strong>Description:</strong> {{ post.caption }}</p>
-                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
             {% endif %}
+
         </div>
         {% endif %}
     </div>
 
+    <div class="post-details" id="postDetailsContainer">
+        <button class="close-btn" onclick="closePostDetails()">Закрыть</button>
+        <div class="swiper-container">
+            <div class="swiper-wrapper" id="postImagesContainer"></div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+        </div>
+        <div class="post-description" id="postDescriptionContainer"></div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.js"></script>
     <script>
-        function showPostDetails(postContent) {
-            var post = postContent.closest('.post');
-            var postDetails = post.querySelector('.post-details');
-            var isActive = postDetails.classList.contains('active');
-            
-            // Проверяем, активен ли данный пост
-            if (isActive) {
-                // Если пост уже активен, скрываем его детали
-                postDetails.classList.remove('active');
-            } else {
-                // Иначе, скрываем детали для всех постов и показываем только для текущего
-                document.querySelectorAll('.post-details').forEach(function (element) {
-                    element.classList.remove('active');
+        function showPostDetails(post) {
+            var postDetailsContainer = document.getElementById('postDetailsContainer');
+            var postImagesContainer = document.getElementById('postImagesContainer');
+            var postDescriptionContainer = document.getElementById('postDescriptionContainer');
+    
+            // Очищаем контейнеры перед добавлением нового контента
+            postImagesContainer.innerHTML = '';
+            postDescriptionContainer.innerHTML = '';
+    
+            // Получаем ссылки на изображения и видео
+            var images = post.getAttribute('data-images');
+            var videoUrl = post.getAttribute('data-video');
+            var caption = post.getAttribute('data-caption');
+            var comments = post.getAttribute('data-comments');
+    
+            console.log("Images:", images);
+            console.log("Video URL:", videoUrl);
+    
+            // Добавляем изображения в контейнер
+            if (images) {
+                var imageList = images.split(',');
+                imageList.forEach(function(image) {
+                    var swiperSlide = document.createElement('div');
+                    swiperSlide.className = 'swiper-slide';
+                    var img = document.createElement('img');
+                    img.src = image.trim();
+                    img.alt = 'Изображение поста';
+                    swiperSlide.appendChild(img);
+                    postImagesContainer.appendChild(swiperSlide);
                 });
-                postDetails.classList.add('active');
             }
+    
+            // Если есть ссылка на видео
+            if (videoUrl) {
+                // Создаем видеоэлемент
+                var video = document.createElement('video');
+                video.controls = true;
+                video.className = 'instagram-video';
+                var source = document.createElement('source');
+                source.src = videoUrl;
+                source.type = 'video/mp4';
+                video.appendChild(source);
+                // Добавляем видео в контейнер
+                var videoContainer = document.createElement('div'); // Создаем дополнительный div для видео
+                videoContainer.className = 'swiper-slide video-container'; // Добавляем класс video-container
+                videoContainer.appendChild(video);
+                postImagesContainer.appendChild(videoContainer); // Добавляем видео-контейнер в swiper-slide
+            }
+    
+            // Создаем описание поста
+            var postDescription = document.createElement('div');
+            postDescription.innerHTML = '<p><strong>Описание:</strong> ' + (caption ? caption : 'Отсутствует') + '</p>' +
+                                         '<p><strong>Комментарии:</strong> ' + (comments ? comments : 'Отсутствуют') + '</p>';
+            postDescriptionContainer.appendChild(postDescription);
+    
+            // Показываем контейнер с подробной информацией о посте
+            postDetailsContainer.classList.add('active');
+    
+            // Инициализируем Swiper
+            var postSwiper = new Swiper('.swiper-container', {
+                loop: true,
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+            });
         }
     
-        function openInstagramPost(postContent, event) {
-            // Отменяем стандартное действие по клику, чтобы предотвратить переход на about:blank
-            event.preventDefault();
-    
-            var post = postContent.closest('.post');
-            var instagramLink = post.querySelector('a').getAttribute('href');
-            window.open(instagramLink, '_blank');
+        function closePostDetails() {
+            var postDetailsContainer = document.getElementById('postDetailsContainer');
+            postDetailsContainer.classList.remove('active');
         }
     </script>
+                
 </body>
 </html>
+
