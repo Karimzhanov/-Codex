@@ -188,9 +188,22 @@ JAZZMIN_SETTINGS = {
 }
 
 
-# settings.py
-EMAIL_HOST = 'smtp.example.com'  # SMTP-сервер
-EMAIL_PORT = 587  # Порт SMTP-сервера
-EMAIL_HOST_USER = 'adm1n.0651@gmail.com'  # Ваш адрес электронной почты
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # SMTP сервер вашего почтового провайдера
+EMAIL_PORT = 587  # Порт SMTP сервера
+EMAIL_USE_TLS = True  # Использовать TLS
+EMAIL_HOST_USER  = 'adm1n.0651@gmail.com'  # Ваша почта
 EMAIL_HOST_PASSWORD = 'Admin_admin'  # Пароль от вашей почты
-EMAIL_USE_TLS = True  # Использовать ли TLS (SSL) для безопасного соединения
+DEFAULT_FROM_EMAIL = 'adm1n.0651@gmail.com'  # Почта от имени которой будут отправлены письма
+
+
+
+
+# settings.py
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}

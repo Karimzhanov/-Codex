@@ -106,7 +106,7 @@
             {% if posts %}
                 <div class="posts">
                     {% for post in posts %}
-                        <div class="post" data-images="{{ post.images }}" data-video="{{ post.video_url }}" data-caption="{{ post.caption }}" data-comments="{{ post.comments }}" onclick="showPostDetails(this)">
+                        <div class="post" data-images="{{ post.image_url }}" data-video="{{ post.video_url }}" data-caption="{{ post.caption }}" data-comments="{{ post.comments }}" onclick="showPostDetails(this)">
                             <div class="post-content">
                                 {% if post.video_url %}
                                     <video controls class="instagram-video">

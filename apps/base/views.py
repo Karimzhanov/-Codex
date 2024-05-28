@@ -6,7 +6,7 @@ from django.contrib.auth.hashers import make_password
 from .models import Post, Comment, UserProfile
 from django.utils import timezone
 from django.contrib.auth.models import User
-import instaloader, requests, time
+import instaloader, requests
 from django.views.decorators.csrf import csrf_protect
 
 
@@ -21,7 +21,7 @@ def register(request):
         phone = request.POST.get("phone")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
-        
+
         if not (username and password and email and phone):
             error_message = 'Пожалуйста, заполните все поля.'
             return render(request, 'register.html', {'error_message': error_message})
@@ -30,35 +30,26 @@ def register(request):
             error_message = 'Пароли не совпадают.'
             return render(request, 'register.html', {'error_message': error_message})
 
-        # Проверка наличия пользователя с таким именем или электронной почтой
         if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
             error_message = 'Пользователь с таким именем или электронной почтой уже существует.'
             return render(request, 'register.html', {'error_message': error_message})
 
         try:
-            # Создайте пользователя и установите его атрибуты
             user = User.objects.create_user(username=username, email=email, password=password)
-            user.phone = phone
-            user.save()
 
-            # Создайте профиль пользователя и свяжите его с пользователем Django
-            profile = UserProfile.objects.create(user=user, phone=phone)
+            # Сохранение номера телефона и хэшированного пароля в профиль пользователя
+            profile = UserProfile.objects.create(user=user, phone=phone, passwords=make_password(password))
 
-            # Сохраните поисковые запросы пользователя
-            profile.searches = "Данные о поиске, если есть"
-            profile.save()
-
-            # Аутентифицируйте пользователя и выполните вход
+            # Аутентификация пользователя и выполнение входа
             user = authenticate(request=request, username=username, password=password)
             if user:
-                auth_login(request, user)  # Используем явный импорт
-                return redirect('index')  # Перенаправьте на главную страницу
+                auth_login(request, user)
+                return redirect('index')
         except Exception as e:
             error_message = f'Произошла ошибка при создании пользователя: {str(e)}'
             return render(request, 'register.html', {'error_message': error_message})
 
-    return render(request, 'register.html', locals())
-
+    return render(request, 'register.html')
     
 # @login_required
 def index(request):
@@ -149,17 +140,13 @@ def analyze_instagram(request):
                     break
                 new_post = {
                     'image_url': post.url,
-                    'video_url': post.video_url if post.is_video else None,
+                    'video_url': post.video_url, 
                     'caption': post.caption,
                     'likes': post.likes,
                     'comments': post.comments,
                     'timestamp': post.date_utc,
                 }
                 posts.append(new_post)
-
-                # Установим паузу между запросами
-                time.sleep(3)  # Пауза в 3 секунды между запросами
-
             return render(request, 'instagram_analysis.html', {'user_data': user_data, 'posts': posts})
         except Exception as e:
             error_message = f"Error: {str(e)}"
@@ -200,6 +187,10 @@ from django.http import HttpResponse
 
 from django.http import HttpResponse
 
+
+import requests
+from django.http import HttpResponse
+
 def proxy_view(request, url):
     # Используем переданный URL для отправки запроса на сервер Instagram
     response = requests.get(url)
@@ -217,7 +208,6 @@ def proxy_view(request, url):
         http_response['Cross-Origin-Resource-Policy'] = 'cross-origin'
     
     return http_response
-
 
 
 def settings(request):

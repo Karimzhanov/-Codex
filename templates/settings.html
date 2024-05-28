@@ -157,16 +157,16 @@
         <h1>Настройки</h1>
         <div class="reset-password-container">
             <h2>Сбросить пароль</h2>
-            <form action="method="POST" {% url 'settings'%}">
+            <form method="post" action="{% url 'settings' %}">
                 {% csrf_token %}
-                <input type="email" id="reset_email" name="reset_email" placeholder="Введите ваш email">
+                <label for="reset_email">Введите ваш email для сброса пароля:</label>
+                <input type="email" id="reset_email" name="reset_email" required>
                 <input type="submit" value="Отправить ссылку для сброса">
-            </form>            
+            </form>                     
         </div>
 
         <button class="dark-mode-btn" onclick="toggleDarkMode()">Темный режим</button>
     </div>
-
     <script>
         function toggleDarkMode() {
             document.body.classList.toggle("dark-mode");

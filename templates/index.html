@@ -1,4 +1,4 @@
-{% load  static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -9,6 +9,85 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.css" />
     <style>
+        /* Add CSS styling here */
+        /* Your existing CSS + the following */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-info img {
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+
+        .profile-info p {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .posts {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .post {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .post img,
+        .post video {
+            width: 100%;
+            height: auto;
+        }
+
+        .post-info {
+            padding: 10px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none;
+        }
+
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 6px solid #3498db;
+            width: 50px;
+            height: 50px;
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .post-details {
             display: none;
             position: fixed;
@@ -60,40 +139,6 @@
             cursor: pointer;
             z-index: 1001;
         }
-
-        .loader-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            display: none;
-        }
-
-        .loader {
-            border: 6px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 6px solid #3498db;
-            width: 50px;
-            height: 50px;
-            -webkit-animation: spin 1.5s linear infinite;
-            animation: spin 1.5s linear infinite;
-        }
-
-        @-webkit-keyframes spin {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -143,7 +188,12 @@
             {% if posts %}
                 <div class="posts">
                     {% for post in posts %}
-                        <div class="post" data-images="{{ post.images }}" data-video="{{ post.video_url }}" data-caption="{{ post.caption }}" data-comments="{{ post.comments }}" onclick="showPostDetails(this)">
+                        <div class="post" 
+                            data-images="{{ post.image_url|default:'[]' }}" 
+                            data-video="{{ post.video_url|default:'None' }}" 
+                            data-caption="{{ post.caption }}" 
+                            data-comments="{{ post.comments }}" 
+                            onclick="showPostDetails(this)">
                             <div class="post-content">
                                 {% if post.video_url %}
                                     <video controls class="instagram-video">
@@ -151,7 +201,7 @@
                                         Ваш браузер не поддерживает видео.
                                     </video>
                                 {% else %}
-                                    {% if post.images %}
+                                    {% if post.image_url %}
                                         <img src="{% url 'proxy_view' post.image_url %}" alt="Изображение поста">
                                     {% endif %}
                                 {% endif %}
@@ -169,22 +219,19 @@
         {% endif %}
     </div>
 
-    <div class="post-details" id="postDetailsContainer">
-        <button class="close-btn" onclick="closePostDetails()">Закрыть</button>
-        <div class="swiper-container images">
-            <div class="swiper-wrapper" id="postImagesContainer"></div>
-            <div class="swiper-pagination images"></div>
-            <div class="swiper-button-prev images"></div>
-            <div class="swiper-button-next images"></div>
-        </div>
-        <div class="swiper-container videos">
-            <div class="swiper-wrapper" id="postVideosContainer"></div>
-            <div class="swiper-pagination videos"></div>
-            <div class="swiper-button-prev videos"></div>
-            <div class="swiper-button-next videos"></div>
-        </div>
-        <div class="post-description" id="postDescriptionContainer"></div>
+    <div class="swiper-container images"> <!-- Добавляем класс "images" -->
+        <div class="swiper-wrapper" id="postImagesContainer"></div>
+        <div class="swiper-pagination images"></div>
+        <div class="swiper-button-prev images"></div>
+        <div class="swiper-button-next images"></div>
     </div>
+    <div class="swiper-container videos"> <!-- Добавляем класс "videos" -->
+        <div class="swiper-wrapper" id="postVideosContainer"></div>
+        <div class="swiper-pagination videos"></div>
+        <div class="swiper-button-prev videos"></div>
+        <div class="swiper-button-next videos"></div>
+    </div>
+    
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.js"></script>
     <script>
@@ -193,111 +240,84 @@
             var postImagesContainer = document.getElementById('postImagesContainer');
             var postVideosContainer = document.getElementById('postVideosContainer');
             var postDescriptionContainer = document.getElementById('postDescriptionContainer');
-    
+        
             // Очистка контейнеров перед добавлением нового контента
             postImagesContainer.innerHTML = '';
             postVideosContainer.innerHTML = '';
             postDescriptionContainer.innerHTML = '';
-    
-            // Получение ссылок на изображения и видео
+        
+            // Добавление изображений
             var images = post.getAttribute('data-images');
-            var videoUrl = post.getAttribute('data-video');
-            var caption = post.getAttribute('data-caption');
-            var comments = post.getAttribute('data-comments');
-    
-            // Добавление изображений в контейнер
-            if (images) {
-                var imageList = images.split(',');
-                imageList.forEach(function(image) {
-                    var swiperSlide = document.createElement('div');
-                    swiperSlide.className = 'swiper-slide';
-                    var img = document.createElement('img');
-                    img.src = image.trim();
-                    img.alt = 'Изображение поста';
-                    swiperSlide.appendChild(img);
-                    postImagesContainer.appendChild(swiperSlide);
-                });
+            if (images && images !== '[]') {
+                images = JSON.parse(images);
+                if (images.length > 0) {
+                    images.forEach(function(image) {
+                        var slide = document.createElement('div');
+                        slide.className = 'swiper-slide';
+                        var img = document.createElement('img');
+                        img.src = '/proxy-view/?url=' + encodeURIComponent(image);
+                        slide.appendChild(img);
+                        postImagesContainer.appendChild(slide);
+                    });
+                }
             }
-    
-            // Добавление видео в контейнер
-            if (videoUrl) {
-                var swiperSlide = document.createElement('div');
-                swiperSlide.className = 'swiper-slide';
+        
+            // Добавление видео
+            var videoUrl = post.getAttribute('data-video');
+            if (videoUrl && videoUrl !== '') {
+                var slide = document.createElement('div');
+                slide.className = 'swiper-slide';
                 var video = document.createElement('video');
                 video.controls = true;
-                video.className = 'instagram-video';
                 var source = document.createElement('source');
                 source.src = videoUrl;
                 source.type = 'video/mp4';
                 video.appendChild(source);
-                swiperSlide.appendChild(video);
-                postVideosContainer.appendChild(swiperSlide);
+                slide.appendChild(video);
+                postVideosContainer.appendChild(slide);
             }
-    
-            // Добавление подписи в контейнер описания
-            if (caption) {
-                var captionElement = document.createElement('p');
-                captionElement.textContent = caption;
-                postDescriptionContainer.appendChild(captionElement);
-            }
-    
-            // Добавление комментариев в контейнер описания
-            if (comments) {
-                var commentsList = comments.split(',');
-                commentsList.forEach(function(comment) {
-                    var commentElement = document.createElement('p');
-                    commentElement.textContent = comment;
-                    postDescriptionContainer.appendChild(commentElement);
-                });
-            }
-    
-            // Инициализация Swiper для изображений
-            setTimeout(function() {
-                var imageSwiper = new Swiper('.swiper-container.images', {
-                    loop: true,
-                    navigation: {
-                        nextEl: '.swiper-button-next.images',
-                        prevEl: '.swiper-button-prev.images',
-                    },
+        
+            // Добавление описания
+            var caption = post.getAttribute('data-caption');
+            var comments = post.getAttribute('data-comments');
+            postDescriptionContainer.innerHTML = '<p>' + caption + '</p><p>Комментарии: ' + comments + '</p>';
+        
+            // Инициализация Swiper
+            if (images && images !== 'None' && images.length > 0) {
+                new Swiper('.images', {
                     pagination: {
                         el: '.swiper-pagination.images',
                         clickable: true,
                     },
-                });
-    
-                // Инициализация Swiper для видео
-                var videoSwiper = new Swiper('.swiper-container.videos', {
-                    loop: true,
                     navigation: {
-                        nextEl: '.swiper-button-next.videos',
-                        prevEl: '.swiper-button-prev.videos',
+                        nextEl: '.swiper-button-next.images',
+                        prevEl: '.swiper-button-prev.images',
                     },
+                    loop: true,
+                });
+            }
+        
+            if (videoUrl && videoUrl !== '') {
+                new Swiper('.videos', {
                     pagination: {
                         el: '.swiper-pagination.videos',
                         clickable: true,
                     },
+                    navigation: {
+                        nextEl: '.swiper-button-next.videos',
+                        prevEl: '.swiper-button-prev.videos',
+                    },
+                    loop: true,
                 });
-            }, 100); // Небольшая задержка для загрузки DOM элементов
-    
+            }
+        
             postDetailsContainer.classList.add('active');
-        }
-    
+        }        
+        
         function closePostDetails() {
             var postDetailsContainer = document.getElementById('postDetailsContainer');
             postDetailsContainer.classList.remove('active');
         }
-    
-        function showLoader() {
-            document.getElementById('loader').style.display = 'flex';
-        }
-    
-        function hideLoader() {
-            document.getElementById('loader').style.display = 'none';
-        }
-    
-        document.addEventListener('DOMContentLoaded', function() {
-            hideLoader();
-        });
     </script>
 </body>
 </html>
