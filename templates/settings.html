@@ -70,17 +70,6 @@
             margin-bottom: 20px;
         }
 
-        input[type="email"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 16px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
         input[type="submit"] {
             background-color: #007bff;
             color: #ffffff;
@@ -123,12 +112,6 @@
             color: #fff;
         }
 
-        .dark-mode input[type="email"] {
-            background-color: #555;
-            color: #fff;
-            border: 1px solid #666;
-        }
-
         .dark-mode input[type="submit"] {
             background-color: #444;
             color: #fff;
@@ -157,12 +140,10 @@
         <h1>Настройки</h1>
         <div class="reset-password-container">
             <h2>Сбросить пароль</h2>
-            <form method="post" action="{% url 'settings' %}">
+            <form method="post" action="{% url 'reset_password' %}">
                 {% csrf_token %}
-                <label for="reset_email">Введите ваш email для сброса пароля:</label>
-                <input type="email" id="reset_email" name="reset_email" required>
-                <input type="submit" value="Отправить ссылку для сброса">
-            </form>                     
+                <input type="submit" value="Сбросит пароль">
+            </form>            
         </div>
 
         <button class="dark-mode-btn" onclick="toggleDarkMode()">Темный режим</button>

@@ -34,6 +34,8 @@
 
                     <button type="submit">Войти</button>
 
+                    <p><a href="{% url 'reset_password' %}">Забыли пароль?</a></p>
+
                     {% if form.errors %}
                     <div class="error">
                         <ul>

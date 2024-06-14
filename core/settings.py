@@ -12,21 +12,25 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR/'.env')
+
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-za^a!z22k0ap_t_p_3m1)&+ktqs43s_j(ir!+(48=7=eoxbr@u'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True     
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -97,6 +101,19 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': os.environ.get("DB_NAME"),
+#         'USER': os.environ.get("DB_USER"),
+#         'PASSWORD': os.environ.get("DB_USER_PASSWORD"),
+#         'HOST': os.environ.get("DB_HOST"),
+#         'PORT': os.environ.get("DB_PORT"),
+#     }
+# }
 
 
 # Password validation
@@ -190,17 +207,16 @@ JAZZMIN_SETTINGS = {
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # SMTP сервер вашего почтового провайдера
-EMAIL_PORT = 587  # Порт SMTP сервера
-EMAIL_USE_TLS = True  # Использовать TLS
-EMAIL_HOST_USER  = 'adm1n.0651@gmail.com'  # Ваша почта
-EMAIL_HOST_PASSWORD = 'Admin_admin'  # Пароль от вашей почты
-DEFAULT_FROM_EMAIL = 'adm1n.0651@gmail.com'  # Почта от имени которой будут отправлены письма
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'karimzanovumar@gmail.com'
+EMAIL_HOST_PASSWORD = 'jlkm drxc kvko ovtr'  # Пароль приложения
+DEFAULT_FROM_EMAIL = 'adm1n.0651@gmail.com'
+# LOGOUT_REDIRECT_URL = 'login'  # URL для перенаправления после выхода
 
 
-
-
-# settings.py
+    # settings.py
 
 CACHES = {
     'default': {

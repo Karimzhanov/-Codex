@@ -1,11 +1,9 @@
 from django.urls import path
-from .views import reset_password, send_reset_password_email
-from django.contrib.auth.views import PasswordResetConfirmView
-
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('reset-password/', reset_password, name='reset_password'),
-    path('send-reset-password-email/', send_reset_password_email, name='send_reset_password_email'),
-    path('reset-password/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='reset_password_confirm'),
-    path('settings/', send_reset_password_email, name='settings'),  # если это основная страница настроек
+    path('reset_password/', auth_views.PasswordResetView.as_view(), name='reset_password'),
+    path('reset_password_sent/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset_password_complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 ]

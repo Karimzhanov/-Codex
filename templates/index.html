@@ -148,7 +148,7 @@
 
     <nav class="navbar">
         <div class="container">
-            <a href="#" class="logo">Instagram Анализ</a>
+            <a href="{% url 'index' %}" class="logo">Instagram Анализ</a>
             <ul class="nav-links">
                 <li><a href="{% url 'index' %}">Главная</a></li>
                 <li><a href="{% url 'profile' %}">Профиль</a></li>
@@ -192,12 +192,14 @@
                             data-images="{{ post.image_url|default:'[]' }}" 
                             data-video="{{ post.video_url|default:'None' }}" 
                             data-caption="{{ post.caption }}" 
-                            data-comments="{{ post.comments }}" 
+                            data-comments="{{ post.comments }}"
+                            data-publish-date="{{ post.publish_date }}"  <!-- Добавляем дату публикации -->
                             onclick="showPostDetails(this)">
                             <div class="post-content">
                                 {% if post.video_url %}
                                     <video controls class="instagram-video">
-                                        <source src="{{ post.video_url }}" type="video/mp4">
+                                        <source src="{{ post.video_url }}" type="video/mp4
+                                        ">
                                         Ваш браузер не поддерживает видео.
                                     </video>
                                 {% else %}
@@ -219,17 +221,29 @@
         {% endif %}
     </div>
 
-    <div class="swiper-container images"> <!-- Добавляем класс "images" -->
+    <div class="swiper-container images">
         <div class="swiper-wrapper" id="postImagesContainer"></div>
         <div class="swiper-pagination images"></div>
         <div class="swiper-button-prev images"></div>
         <div class="swiper-button-next images"></div>
     </div>
-    <div class="swiper-container videos"> <!-- Добавляем класс "videos" -->
+    <div class="swiper-container videos">
         <div class="swiper-wrapper" id="postVideosContainer"></div>
         <div class="swiper-pagination videos"></div>
         <div class="swiper-button-prev videos"></div>
         <div class="swiper-button-next videos"></div>
+    </div>
+
+    <!-- Добавляем модальное окно для детального просмотра поста -->
+    <div class="post-details" id="postDetailsContainer">
+        <button class="close-btn" onclick="closePostDetails()">Закрыть</button>
+        <div class="swiper-container">
+            <div class="swiper-wrapper" id="postImagesContainer"></div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+        </div>
+        <div class="post-description" id="postDescriptionContainer"></div>
     </div>
     
     
@@ -277,10 +291,11 @@
                 postVideosContainer.appendChild(slide);
             }
         
-            // Добавление описания
+            // Добавление описания и даты публикации
             var caption = post.getAttribute('data-caption');
             var comments = post.getAttribute('data-comments');
-            postDescriptionContainer.innerHTML = '<p>' + caption + '</p><p>Комментарии: ' + comments + '</p>';
+            var publishDate = post.getAttribute('data-publish-date');  // Получаем дату публикации
+            postDescriptionContainer.innerHTML = '<p>' + caption + '</p><p>Комментарии: ' + comments + '</p><p>Дата публикации: ' + publishDate + '</p>';
         
             // Инициализация Swiper
             if (images && images !== 'None' && images.length > 0) {
