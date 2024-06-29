@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/6.8.4/swiper-bundle.min.css" />
     <style>
-        /* Your styles */
         .post-details, .story-details {
             display: none;
             position: fixed;
@@ -74,13 +73,28 @@
         .story {
             margin-right: 10px;
             cursor: pointer;
+            border-radius: 50%;
+            overflow: hidden;
+            width: 80px;
+            height: 80px;
+            border: 2px solid white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .story img {
-            width: 80px;
-            height: 80px;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             object-fit: cover;
+        }
+
+        .story:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -97,7 +111,7 @@
     </nav>
 
     <div class="content">
-        <div id="searchContainer" class="search-container">
+        <div id="searchContainer" class="search-container"> 
             <form action="{% url 'analyze_instagram' %}" method="POST">
                 {% csrf_token %}
                 <h1>Анализ Instagram</h1>
@@ -123,14 +137,32 @@
                 <p><strong>Подписки:</strong> {{ user_data.following }}</p>
                 <p><strong>Биография:</strong> {{ user_data.biography }}</p>
             </div>
+
+            {% if stories %}
+                <div class="stories">
+                    {% for story in stories %}
+                        <div class="story" data-media-url="{{ story.media_url }}" data-media-type="{{ story.media_type }}" onclick="showStoryDetails(this)">
+                            {% if story.media_type == 'image' %}
+                                <img src="{{ story.media_url }}" alt="Изображение истории">
+                            {% elif story.media_type == 'video' %}
+                                <video controls>
+                                    <source src="{{ story.media_url }}" type="video/mp4">
+                                    Ваш браузер не поддерживает видео.
+                                </video>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Истории не найдены.</p>
+            {% endif %}
             
             {% if posts %}
                 <div class="sort-controls">
                     <label for="sort">Сортировка:</label>
                     <select id="sort" onchange="sortPosts()">
                         <option value="date_desc">По дате (новые - старые)</option>
-                        <option value="date_asc">По дате (старые - новые)</option>
-                        <option value="comments_desc">По количеству комментариев (высокие - низкие)</option>
+                        <option value="date_asc">По дате (старые - новые)</option
                         <option value="comments_asc">По количеству комментариев (низкие - высокие)</option>
                         <option value="likes_desc">По количеству лайков (высокие - низкие)</option>
                         <option value="likes_asc">По количеству лайков (низкие - высокие)</option>
@@ -237,7 +269,7 @@
     
             postDetailsContainer.classList.add('active');
     
-            var postSwiper = new Swiper('.swiper-container', {
+            new Swiper('.post-details .swiper-container', {
                 loop: true,
                 pagination: {
                     el: '.swiper-pagination',
@@ -249,19 +281,22 @@
                 },
             });
         }
-    
+        
         function closePostDetails() {
             var postDetailsContainer = document.getElementById('postDetailsContainer');
             postDetailsContainer.classList.remove('active');
         }
 
-        function showStoryDetails(mediaUrl) {
+        function showStoryDetails(story) {
             var storyDetailsContainer = document.getElementById('storyDetailsContainer');
             var storyImagesContainer = document.getElementById('storyImagesContainer');
     
             storyImagesContainer.innerHTML = '';
     
-            if (mediaUrl) {
+            var mediaUrl = story.getAttribute('data-media-url');
+            var mediaType = story.getAttribute('data-media-type');
+    
+            if (mediaType === 'image') {
                 var swiperSlide = document.createElement('div');
                 swiperSlide.className = 'swiper-slide';
                 var img = document.createElement('img');
@@ -269,11 +304,23 @@
                 img.alt = 'История';
                 swiperSlide.appendChild(img);
                 storyImagesContainer.appendChild(swiperSlide);
+            } else if (mediaType === 'video') {
+                var swiperSlide = document.createElement('div');
+                swiperSlide.className = 'swiper-slide';
+                var video = document.createElement('video');
+                video.controls = true;
+                video.className = 'instagram-video';
+                var source = document.createElement('source');
+                source.src = mediaUrl.trim();
+                source.type = 'video/mp4';
+                video.appendChild(source);
+                swiperSlide.appendChild(video);
+                storyImagesContainer.appendChild(swiperSlide);
             }
     
             storyDetailsContainer.classList.add('active');
     
-            var storySwiper = new Swiper('.swiper-container', {
+            new Swiper('.story-details .swiper-container', {
                 loop: true,
                 pagination: {
                     el: '.swiper-pagination',
@@ -356,7 +403,6 @@
                 postsContainer.appendChild(post);
             });
         }
-            
     </script>
 </body>
 </html>

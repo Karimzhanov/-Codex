@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'apps.base',
     'apps.contacts',
     'apps.secondary',
+    'apps.analyze_instagram',
 ]
 
 
@@ -61,11 +62,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'apps.base.middleware.CORSMiddleware',  # Добавьте это
-
+    'apps.analyze_instagram.middleware.CORSMiddleware',  # Добавьте это'
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
-# settings.py
+# settings.py   
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -223,3 +224,4 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
+CORS_ALLOW_ALL_ORIGINS = True

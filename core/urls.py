@@ -25,8 +25,10 @@ from apps.base import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.base.urls')), 
-    path('', include('apps.secondary.urls')),
+    path('', include('apps.analyze_instagram.urls')),
+    path('', include('apps.analyze_instagram.urls')),
     path('login/', views.user_login, name='login'),
+
 
 
 ]

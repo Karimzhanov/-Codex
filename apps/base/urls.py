@@ -13,9 +13,7 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('edit_profile/', views.edit_profile, name='edit_profile'),
     path('settings/', views.settings, name='settings'),
-    path('analyze-instagram/', views.analyze_instagram, name='analyze_instagram'),
     path('logout/', views.logout_view, name='logout'),
-    path('proxy/<path:url>/', views.proxy_view, name='proxy_view'),
 
     path('reset_password/', auth_views.PasswordResetView.as_view(), name='reset_password'),
     path('reset_password_sent/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
